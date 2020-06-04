@@ -50,5 +50,10 @@ from statsmodels.formula.api import ols
 %matplotlib inline
 ```
 ## Scatter plots of predictors vs target
+The below image shows the relations between the individual features and the target - *price*. It's evident that there are a number of features that should be treated as categorical.
 
 ![scatter](images/feature_scatter.png)
+
+
+## Thank you
+Thank you for visiting this repo. Please provide feedback so that I can continue to grow in this field. It will be welcomed. 
