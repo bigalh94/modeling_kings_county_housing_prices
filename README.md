@@ -49,7 +49,9 @@ import statsmodels.api as sm
 from statsmodels.formula.api import ols
 %matplotlib inline
 ```
-## Scatter plots of predictors vs target
+## Sample content
+
+### Scatter plots of predictors vs target
 The below image shows the relations between the individual features and the target - *price*. It's evident that there are a number of features that should be treated as categorical, though most appear as continuous data. 
 
 ![scatter](images/feature_scatter.png)
