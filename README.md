@@ -51,4 +51,4 @@ from statsmodels.formula.api import ols
 ```
 ## Scatter plots of predictors vs target
 
-![scatter](images/feature_scatter.jpg)
+![scatter](images/feature_scatter.png)
