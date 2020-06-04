@@ -50,10 +50,11 @@ from statsmodels.formula.api import ols
 %matplotlib inline
 ```
 ## Scatter plots of predictors vs target
-The below image shows the relations between the individual features and the target - *price*. It's evident that there are a number of features that should be treated as categorical.
+The below image shows the relations between the individual features and the target - *price*. It's evident that there are a number of features that should be treated as categorical, though most appear as continuous data. 
 
 ![scatter](images/feature_scatter.png)
 
+In this project we walk through the steps of exploring and understanding the data. We clean and preprocess the data. We explore  feature selection.  We also go about detecting and creating interaction terms. We try using log transformations and feature scaling. And we use combinations of these for the purpose of creating the various model that we evaluate.
 
 ## Thank you
-Thank you for visiting this repo. Any feedbackt will be welcomed. 
+Thank you for visiting this repo. All feedback and comments will be welcomed. 
