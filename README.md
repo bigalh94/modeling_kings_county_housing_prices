@@ -20,10 +20,30 @@ Much of the code used to process the data can be found in the *source/resources.
 6. *set_waterfront()* to try to estimate if record missing the waterfront value is or is  not a waterfront property
 7. *plot_trans()* to aid in visualizing transformation of features.
 
-You will be able to:
-* Describe all required aspects of the final project for Module 2
-* Describe all required deliverables
-* Describe what constitutes a successful project
+## Requirement
+This project created on Python 3.6.9. using Pandas 0.25.1, numpy 1.16.5, matplotlib 3.1.1, scikit-learn 0.21.3, and statsmodels 0.10.1
+You will need to do the following imports:
+
+from source.resources import *
+import pandas as pd
+import numpy as np 
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.model_selection import train_test_split 
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import KFold
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.metrics import mean_squared_error, r2_score
+
+import itertools as it
+from statsmodels.regression import linear_model
+import statsmodels.api as sm
+from statsmodels.formula.api import ols
+%matplotlib inline
+
+
 
 ## Final Project Summary
 
