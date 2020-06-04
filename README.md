@@ -56,4 +56,4 @@ The below image shows the relations between the individual features and the targ
 
 
 ## Thank you
-Thank you for visiting this repo. Please provide feedback so that I can continue to grow in this field. It will be welcomed. 
+Thank you for visiting this repo. Any feedbackt will be welcomed. 
