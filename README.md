@@ -5,9 +5,21 @@
 
 ## Introduction
 
-In this lesson, we'll review all of the guidelines and specifications for the final project for Module 2.
+The goal of this project is to model real estate prices in Kings County, Washingtion, USA. It is my hope that the model will be able to accurately predict housing prices based on a number of features provided within the dataset that we use to build the model. The expectation is that, once completed, the model can be used by real estate investors operating in the Kings County area as a tool in selecting properties for investment.
 
-## Objectives
+## The data
+The data used in this project can be found on [Kaggle](https://www.kaggle.com/swathiachath/kc-housesales-data?select=kc_house_data.csvy). It is also included in this repository. Descriptions of the columns can be found in *column_names.MD*.
+
+## Code
+Much of the code used to process the data can be found in the *source/resources.py* file. These include: 
+1. *preprocess_data()*, Where most of the data manipulation happens
+2. *stepwise_selection()* for feature selection
+3. *bin_data()* to bin data for use as categorical data
+4. *exp_interactions* to find and create interaction terms
+5. *add_interactions()* to add the interaction terms to the data
+6. *set_waterfront()* to try to estimate if record missing the waterfront value is or is  not a waterfront property
+7. *plot_trans()* to aid in visualizing transformation of features.
+
 You will be able to:
 * Describe all required aspects of the final project for Module 2
 * Describe all required deliverables
