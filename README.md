@@ -23,7 +23,7 @@ Much of the code used to process the data can be found in the *source/resources.
 ## Requirement
 This project created on Python 3.6.9. using Pandas 0.25.1, numpy 1.16.5, matplotlib 3.1.1, scikit-learn 0.21.3, and statsmodels 0.10.1
 You will need to do the following imports:
-
+```pyhton
 from source.resources import *
 import pandas as pd
 import numpy as np 
@@ -42,7 +42,7 @@ from statsmodels.regression import linear_model
 import statsmodels.api as sm
 from statsmodels.formula.api import ols
 %matplotlib inline
-
+```
 
 
 ## Final Project Summary
