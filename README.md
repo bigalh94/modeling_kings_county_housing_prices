@@ -3,6 +3,8 @@
 
 ![awesome](images/seattle.jpg)
 
+#### Author: Alvaro Henriquez
+
 ## Introduction
 
 The goal of this project is to model real estate prices in Kings County, Washingtion, USA. It is my hope that the model will be able to accurately predict housing prices based on a number of features provided within the dataset that we use to build the model. The expectation is that, once completed, the model can be used by real estate investors operating in the Kings County area as a tool in selecting properties for investment.
