@@ -79,7 +79,7 @@ def bin_data(data,  bins, cats):
     bds_bins.categories = cats
     return pd.get_dummies(bds_bins.cat.rename_categories(bds_bins.categories), drop_first=True)
 
-def preprocess_data(data, cats=[], cols_to_drop=[], trans=False, t_list=[], scaled=True):
+def preprocess_data(data, cats=[], cols_to_drop=[], trans=False, t_list=[], scaled=True, fs=0, it=0):
     '''
     Arguments:
         data - Dataframe to preprocess
@@ -88,6 +88,8 @@ def preprocess_data(data, cats=[], cols_to_drop=[], trans=False, t_list=[], scal
         trans - Boolean indicating whether to transform the data.
         t_list - List of features to transform. If empty and trans=True, will transform all numerical values.
         scaled - Boolean that if true, will scale down the values with sqft to units of 100sqft
+        fs - Boolean indicating whether to use feature-scaling. Takes an integer for how many cat features to keep.
+        it - Create and add interaction terms. Provide an integer for the number of terms to add.
     '''
 
     # Make a copy so that the original DataFrame is not altered.
@@ -96,10 +98,13 @@ def preprocess_data(data, cats=[], cols_to_drop=[], trans=False, t_list=[], scal
     # Build a list of sub-DataFrames for later concatenation
     to_concat = []
 
+    # ENCODE CATEGORICAL FEATURES
+    #-----------------------------
     # Iterate over category list and encode. Original column will appended to cols_to_drop so that all encoded columns can
     # later be dropped from our data_wc
     # The DataFrames holding the dummie variables will be added to to_concat and concatednated back to the original dataframe
     # We use Pandas 'cut' function to bin the data for 'bedrooms' and 'bathrooms'. Refer to bin_data() function.
+
     for cat in cats:
         # Use binning to create categories, then dummy encode.
         if cat == 'bedrooms':
@@ -153,9 +158,11 @@ def preprocess_data(data, cats=[], cols_to_drop=[], trans=False, t_list=[], scal
     if 'price' in data_wc.columns:
         df_y = data_wc[['price']]
         # scaled to units of $1000
-        df_y = df_y / 1000
+        if scaled: df_y = df_y / 1000
         cols_to_drop.append('price')
 
+    # DROP FEATURES
+    #--------------
     # Verify that columns in cols_to_list are valid. if cols_to_drop has invalid entries, let's catch them here.
     cols_to_drop = [c for c in cols_to_drop if c in data_wc.columns]
     data_wc.drop(cols_to_drop, axis=1, inplace=True)
@@ -169,6 +176,8 @@ def preprocess_data(data, cats=[], cols_to_drop=[], trans=False, t_list=[], scal
     if 'waterfront' in data_wc.columns:
         data_wc['waterfront'] = data_wc.apply(lambda row: set_waterfront(row), axis=1)
 
+    # FEATURE ENGINEERING
+    #--------------------
     # Create new feature - 'age_when_sold' - only if ther other two features are both in dataframe.
     if 'date' in data_wc.columns:
         if 'yr_built' in data_wc.columns:
@@ -187,6 +196,8 @@ def preprocess_data(data, cats=[], cols_to_drop=[], trans=False, t_list=[], scal
             if c in sqft:
                 data_wc[c] = data[c] / 100
 
+    # DATA TRANSFORMATION
+    #--------------------
     # Transform the numerical columns
     new_df = pd.DataFrame()
     if trans:
@@ -202,21 +213,63 @@ def preprocess_data(data, cats=[], cols_to_drop=[], trans=False, t_list=[], scal
 
 
     # Drop the individual indexes before concatenating the dataframes. This will prevent index alignment issues.
-    for tc in to_concat:
-        tc.reset_index(drop=True, inplace=True)
+    cat_df = pd.DataFrame()
+    if to_concat:
+        for tc in to_concat:
+            tc.reset_index(drop=True, inplace=True)
+
+        cat_df = pd.concat(to_concat, axis=1)
 
     # If we transformed the data, we use the dataframe created, else just use same DataFrame
-    # We then concatenate all DataFrames
     new_df = data_wc if new_df.empty else new_df
-    new_df.reset_index(drop=True, inplace=True)
-    df_y.reset_index(drop=True, inplace=True)
-    to_concat = [new_df] + to_concat + [df_y]
+
+    # FEATURE SELECTION
+    #------------------
+    if fs:
+        # md(f'#### Performing Feature Selection')
+        # 1 - Find and remove collinear features
+        clr = find_collinear(new_df)
+        md(f'Collinear features to be removed: {clr}')
+        new_df.drop(clr, axis=1, inplace=True)
+
+        # 2a - Do step_wise feature selection of remaining numerical values
+        results = stepwise_selection(new_df, df_y)
+        f_start = new_df.shape[1]
+
+        # 2b - Make a list of columns in new_df that are not in results, then drop those columns from new_df
+        to_drop = [c for c in new_df.columns if c not in results]
+        new_df.drop(to_drop, axis=1, inplace=True)
+        md(f'Removed {f_start - new_df.shape[1]} features with step-wise selection.')
+
+        # 3a - categorical feature selection with chi2
+        c_start = cat_df.shape[1]
+        cfs = SelectKBest(chi2, k='all')
+        cfs_fit = cfs.fit(cat_df, np.array(df_y).reshape(-1,1).astype('int'))
+
+        # 3b - Create dataframe of features and scores, then sort by score and keep 'fs' features
+        if to_concat:
+            cat_score_df = pd.DataFrame({'feature':list(cat_df.columns), 'score':list(cfs_fit.scores_)})
+            cat_score_df = cat_score_df.sort_values(by='score', ascending=False)
+            cat_to_keep = list(cat_score_df["feature"][:fs])
+            cat_df = cat_df[cat_to_keep]
+            md(f'Removed {c_start - cat_df.shape[1]} categories using $chi^2$')
+
+    # Drop indexes and concatenate all sub dataframes
+
+    to_concat = [new_df, cat_df, df_y]
+    for dat in to_concat:
+        dat.reset_index(drop=True, inplace=True)
 
     # Concatenate all of the dataframes to produce the final set
     X = pd.concat(to_concat, axis=1)
 
     # Set the target to 0 if this is the test set, else return the target dataframe
     y = 0 if df_y.empty else df_y
+
+    if it:
+        # md(f'#### Creating Interaction Terms')
+        interact_terms = exp_interactions(X.drop(['price'],axis=1), X['price'], n=it)
+        X = add_interactions(X, interact_terms)
 
     return X,y
 
@@ -314,7 +367,7 @@ def set_waterfront(s):
     else:
         return 0.0
 
-# To print in Markdown
+
 def md(string):
     display(Markdown(string))
 
@@ -342,5 +395,19 @@ def plot_trans(predictor, target, z=0):
             sns.distplot(t, ax=ax[i//3][i%3])
             ax[i//3][i%3].set_title(titles[i])
 
+# create a correlation matrix and remove columns with scores above threshold
+# Found this code here:
+# https://towardsdatascience.com/feature-selection-in-python-recursive-feature-elimination-19f1c39b8d15
+def find_collinear(data, thresh=0.75):
+    correlated_features = set()
+    correlation_matrix = data.corr()
+
+    for i in range(len(correlation_matrix.columns)):
+        for j in range(i):
+            if abs(correlation_matrix.iloc[i, j]) >= thresh:
+                colname = correlation_matrix.columns[i]
+                correlated_features.add(colname)
+
+    return correlated_features
 
 ```
